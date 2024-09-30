@@ -67,18 +67,21 @@ public class Asistente {
         del lenguaje asm
     */
     public static ArrayList<String[]> validarArchivo(String nombre) throws IOException{
+        int tamMemoria = cargarArchivo.getMiPC().getEspacioMemoria();
         System.out.println("Validando el archivo: " + nombre);
         ArrayList<String[]> lista = convertirArchivoLista(nombre);
+        String mensaje = validarLista(lista, tamMemoria);
+        boolean valido = mensaje == "Validación exitosa.";
         System.out.println(Arrays.deepToString(lista.toArray()));
         int noReservadoDisco = (int) (cargarArchivo.getMiPC().getEspacioDisco() * (0.8));//espacio disponible para programas
-        if(lista!= null && validarLista(lista)){
+        if(lista!= null && valido){
             int tamanioLista =  Arrays.asList(lista.toArray()).size();
             if( espacioUtilizadoDisco  + tamanioLista > noReservadoDisco){
                 cargarArchivo.mostrarError(0,"No existe sufieciente espacio en memora para almacenar " + nombre);
                 return null;
             }
         }else{
-            cargarArchivo.mostrarError(0,"El archivo: " + nombre + " no es valido");
+            cargarArchivo.mostrarError(0,"El archivo: " + nombre + " no es valido \n" + mensaje);
             return null;
         }
         return lista;
@@ -89,9 +92,10 @@ public class Asistente {
         valida que todos los elementos de la lista de instrucciones
         pertenescan a la gramatica asm
     */
-    public static boolean validarLista(ArrayList<String[]> lista){
+    public static String validarLista(ArrayList<String[]> lista, int tamMemoria){
         int tamanioLista = Arrays.asList(lista).size();
-        if(tamanioLista>cargarArchivo.getMiPC().getEspacioDisco() * (0.8) || tamanioLista<1) return false;
+        if(tamanioLista>cargarArchivo.getMiPC().getEspacioDisco() * (0.8) || tamanioLista<1) return "Error: La cantidad de instrucciones excede el tamaño de la memoria.";
+        if (tamanioLista < 1) return "Error: La cantidad de instrucciones es menor a 1.";
         for(String [] str : lista){
             boolean pos1Valida = (Arrays.asList(OPERADORESVALIDO).contains(str[0]));
             boolean pos2Valida = true;
@@ -151,12 +155,13 @@ public class Asistente {
 
                 }
             }
-            if(!(pos1Valida && pos2Valida && pos3Valida )){
-                return false;
-            }
-            
+            if (!pos1Valida) return "Error: Operador inválido. \n" + Arrays.toString(str);
+            if (!pos2Valida) return "Error: Registro inválido. \n" + Arrays.toString(str);
+            if (!pos3Valida) return "Error: El tercer elemento no es un entero válido. \n" +Arrays.toString(str);
         }
-        return true;
+    
+        return "Validación exitosa.";
+   
     }
     
     /*

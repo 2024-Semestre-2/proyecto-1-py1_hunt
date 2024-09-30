@@ -1,2 +1,2 @@
-memoria:500
+memoria:550
 disco:1000
